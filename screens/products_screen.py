@@ -1,6 +1,7 @@
 # screens/products_screen.py
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -42,7 +43,7 @@ class ProductsScreen(Screen):
         
         content = MDBoxLayout(
             orientation='vertical', spacing=10, padding=20,
-            size_hint_y=None, height=220
+            size_hint_y=None, height=200
         )
         
         content.add_widget(MDLabel(
@@ -105,10 +106,16 @@ class ProductsScreen(Screen):
         
         content.add_widget(type_layout)
         
+        scroll = ScrollView(size_hint_y=0.9)
+        scroll.add_widget(content)
+        
+        container = MDBoxLayout(orientation='vertical', size_hint_y=None, height=400)
+        container.add_widget(scroll)
+        
         dialog = MDDialog(
             title="✏️ Маҳсулотни таҳрирлаш",
             type="custom",
-            content_cls=content,
+            content_cls=container,
             buttons=[
                 MDRectangleFlatButton(text="БЕКОР", on_release=lambda x: dialog.dismiss()),
                 MDRectangleFlatButton(text="САҚЛАШ", on_release=lambda x: self._save_edit(
@@ -186,10 +193,16 @@ class ProductsScreen(Screen):
         
         content.add_widget(type_layout)
         
+        scroll = ScrollView(size_hint_y=0.9)
+        scroll.add_widget(content)
+        
+        container = MDBoxLayout(orientation='vertical', size_hint_y=None, height=400)
+        container.add_widget(scroll)
+        
         dialog = MDDialog(
             title="➕ ЯНГИ МАҲСУЛОТ",
             type="custom",
-            content_cls=content,
+            content_cls=container,
             buttons=[
                 MDRectangleFlatButton(text="БЕКОР", on_release=lambda x: dialog.dismiss()),
                 MDRectangleFlatButton(text="ҚЎШИШ", on_release=lambda x: self._add_product(
