@@ -6,7 +6,9 @@ from kivymd.uix.list import OneLineListItem
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.label import MDLabel
-from kivy.uix.boxlayout import BoxLayout
+
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from modules.products import ProductManager
 from modules.sales import SalesManager
@@ -27,21 +29,24 @@ class SalesScreen(Screen):
     def load_products(self, search_text=""):
         self.ids.product_list.clear_widgets()
         
-        if search_text:
-            products = self.product_manager.search_product(search_text)
-        else:
-            products = self.product_manager.get_all_products()
-        
-        for p in products:
-            unit = 'кг' if (len(p) > 7 and p[7] == 'kg') else 'дона'
-            item = OneLineListItem(
-                text=f"{p[1]} - {p[4]:,.0f} сўм/{unit} (қолди: {p[5]:.2f})",
-                on_release=lambda x, pid=p[0], name=p[1], price=p[4], qty=p[5]: 
-                    self.show_quantity_dialog(pid, name, price, qty)
-            )
-            self.ids.product_list.add_widget(item)
+        try:
+            if search_text:
+                products = self.product_manager.search_product(search_text)
+            else:
+                products = self.product_manager.get_all_products()
+            
+            for p in products:
+                unit = 'кг' if (len(p) > 7 and p[7] == 'kg') else 'дона'
+                item = OneLineListItem(
+                    text=f"{p[1]} - {p[4]:,.0f} сўм/{unit} (қолди: {p[5]:.2f})",
+                    on_release=lambda x, pid=p[0], name=p[1], price=p[4], qty=p[5]: 
+                        self._show_quantity_dialog(pid, name, price, qty)
+                )
+                self.ids.product_list.add_widget(item)
+        except Exception as e:
+            self._show_msg("Хатолик", str(e))
     
-    def show_quantity_dialog(self, product_id, name, price, available):
+    def _show_quantity_dialog(self, product_id, name, price, available):
         content = MDBoxLayout(
             orientation='vertical', spacing=10, padding=20,
             size_hint_y=None, height=200
@@ -66,14 +71,14 @@ class SalesScreen(Screen):
             content_cls=content,
             buttons=[
                 MDRectangleFlatButton(text="БЕКОР", on_release=lambda x: dialog.dismiss()),
-                MDRectangleFlatButton(text="ҚЎШИШ", on_release=lambda x: self.add_to_cart(
+                MDRectangleFlatButton(text="ҚЎШИШ", on_release=lambda x: self._add_to_cart(
                     product_id, name, price, float(qty_input.text or 1), available, dialog
                 ))
             ]
         )
         dialog.open()
     
-    def add_to_cart(self, product_id, name, price, quantity, available, dialog):
+    def _add_to_cart(self, product_id, name, price, quantity, available, dialog):
         if quantity <= 0:
             return
         if quantity > available:
