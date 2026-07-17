@@ -124,11 +124,86 @@ ScreenManager:
 <SalesScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        MDLabel:
-            text: "🛒 Sotish ekrani"
-            halign: "center"
-            font_style: "H4"
+        padding: 8
+        spacing: 8
+        
+        MDTopAppBar:
+            title: "🛒 СОТИШ"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
+            md_bg_color: 0.15, 0.68, 0.38, 1
+            elevation: 4
+        
+        BoxLayout:
+            orientation: 'horizontal' if {COLS} == 2 else 'vertical'
+            size_hint_y: 0.68
+            spacing: 8
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.5 if {COLS} == 2 else 1
+                size_hint_y: 1 if {COLS} == 2 else 0.5
+                spacing: 5
+                
+                MDTextField:
+                    id: search
+                    hint_text: "🔍 Қидириш"
+                    font_size: "{FONT_TEXT}"
+                    size_hint_y: 0.1
+                    mode: "round"
+                    on_text: root.load_products(self.text)
+                    
+                ScrollView:
+                    MDList:
+                        id: product_list
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.5 if {COLS} == 2 else 1
+                size_hint_y: 1 if {COLS} == 2 else 0.5
+                spacing: 5
+                
+                MDLabel:
+                    text: "🛍 САВАТЧА"
+                    halign: "center"
+                    font_style: "H6"
+                    size_hint_y: 0.08
+                
+                ScrollView:
+                    MDList:
+                        id: cart_list
+                
+                MDLabel:
+                    id: total_label
+                    text: "Жами: 0 сўм"
+                    halign: "center"
+                    font_style: "H5"
+                    size_hint_y: 0.1
+        
+        BoxLayout:
+            size_hint_y: 0.2
+            spacing: 5
+            padding: 5
+            
+            MDRectangleFlatButton:
+                text: "💵 НАҚД"
+                on_release: root.process_single_payment('cash')
+                md_bg_color: 0.15, 0.68, 0.38, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_TEXT}"
+            
+            MDRectangleFlatButton:
+                text: "💳 ПЛАСТИК"
+                on_release: root.process_single_payment('card')
+                md_bg_color: 0.20, 0.55, 0.86, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_TEXT}"
+            
+            MDRectangleFlatButton:
+                text: "🗑 БЎШАТ"
+                on_release: root.clear_cart()
+                md_bg_color: 0.80, 0.20, 0.20, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_TEXT}"
 
 <ProductsScreen>:
     BoxLayout:
