@@ -209,37 +209,91 @@ ScreenManager:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
-        MDLabel:
-            text: "📦 Maxsulotlar ekrani"
-            halign: "center"
-            font_style: "H4"
+        spacing: 8
+        
+        MDTopAppBar:
+            title: "📦 МАҲСУЛОТЛАР"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
+            md_bg_color: 0.20, 0.55, 0.86, 1
+            elevation: 4
+        
+        ScrollView:
+            MDList:
+                id: product_list
+        
+        BoxLayout:
+            size_hint_y: 0.1
+            padding: 5
+            
+            MDRectangleFlatButton:
+                text: "➕ ЯНГИ МАҲСУЛОТ"
+                on_release: root.show_add_dialog()
+                md_bg_color: 0.15, 0.68, 0.38, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_TEXT}"
 
 <CreditsScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
-        MDLabel:
-            text: "📝 Qarzlar ekrani"
-            halign: "center"
-            font_style: "H4"
+        spacing: 8
+        
+        MDTopAppBar:
+            title: "📝 ҚАРЗЛАР"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
+            md_bg_color: 0.90, 0.49, 0.13, 1
+            elevation: 4
+        
+        ScrollView:
+            MDList:
+                id: credit_list
 
 <CashScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
-        MDLabel:
-            text: "💰 Naqd pul ekrani"
-            halign: "center"
-            font_style: "H4"
+        spacing: 8
+        
+        MDTopAppBar:
+            title: "💰 НАҚД ПУЛ"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
+            md_bg_color: 0.95, 0.61, 0.07, 1
+            elevation: 4
+        
+        ScrollView:
+            MDList:
+                id: cash_list
+        
+        MDRectangleFlatButton:
+            text: "➕ ОПЕРАЦИЯ ҚЎШИШ"
+            on_release: root.show_add_dialog()
+            size_hint_y: 0.08
+            md_bg_color: 0.15, 0.68, 0.38, 1
+            text_color: 1, 1, 1, 1
+            font_size: "{FONT_TEXT}"
 
 <ReportScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
-        MDLabel:
-            text: "📊 Hisobot ekrani"
-            halign: "center"
-            font_style: "H4"
+        spacing: 8
+        
+        MDTopAppBar:
+            title: "📊 ҲИСОБОТ"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
+            md_bg_color: 0.61, 0.35, 0.71, 1
+            elevation: 4
+        
+        ScrollView:
+            MDLabel:
+                id: report_label
+                text: "Юкланмоқда..."
+                halign: "left"
+                size_hint_y: None
+                text_size: self.width, None
+                height: self.texture_size[1]
+                padding: 20
+                font_size: "{FONT_TEXT}"
 '''
 
 class DukonApp(MDApp):
