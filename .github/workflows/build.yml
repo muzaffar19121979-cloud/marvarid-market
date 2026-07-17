@@ -26,10 +26,11 @@ jobs:
         sed -i 's/package.name = .*/package.name = marvaridmarket/' buildozer.spec
         sed -i 's/package.domain = .*/package.domain = uz.marvarid/' buildozer.spec
         sed -i 's/source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,ttf,db/' buildozer.spec
-        sed -i 's/requirements = .*/requirements = python3,kivy,kivymd/' buildozer.spec
+        sed -i 's/requirements = .*/requirements = python3,kivy,kivymd,bleak/' buildozer.spec
         sed -i 's/android.api = .*/android.api = 33/' buildozer.spec
         sed -i 's/android.minapi = .*/android.minapi = 24/' buildozer.spec
         sed -i 's/android.arch = .*/android.arch = arm64-v8a/' buildozer.spec
+        sed -i 's/# android.permissions =/android.permissions = INTERNET,BLUETOOTH,BLUETOOTH_ADMIN,BLUETOOTH_CONNECT,ACCESS_FINE_LOCATION/' buildozer.spec
         sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
         buildozer -v android debug
     

@@ -1,3 +1,4 @@
+# pyright: reportMissingImports=false
 # main.py
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -9,6 +10,18 @@ from kivy.core.window import Window
 from kivy.utils import platform
 
 from config import SHOP_NAME
+
+if platform == 'android':
+    try:
+        from android.permissions import request_permissions, Permission
+        request_permissions([
+            Permission.BLUETOOTH,
+            Permission.BLUETOOTH_ADMIN,
+            Permission.BLUETOOTH_CONNECT,
+            Permission.ACCESS_FINE_LOCATION,
+        ])
+    except Exception:
+        pass
 
 # Экранларни хавфсиз юклаш
 try:

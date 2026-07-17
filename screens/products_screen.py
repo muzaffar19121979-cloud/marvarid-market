@@ -38,12 +38,13 @@ class ProductsScreen(Screen):
     def show_product_actions(self, product):
         self.selected_product = product
         
+        unit = 'кг' if (len(product) > 7 and product[7] == 'kg') else 'дона'
+        
         content = MDBoxLayout(
             orientation='vertical', spacing=10, padding=20,
-            size_hint_y=None, height=250
+            size_hint_y=None, height=220
         )
         
-        unit = 'кг' if (len(product) > 7 and product[7] == 'kg') else 'дона'
         content.add_widget(MDLabel(
             text=f"📦 {product[1]}\n💰 Сотиш: {product[4]:,.0f} сўм\n📊 Омбор: {product[5]:.2f} {unit}",
             halign="center", font_style="H6"
@@ -65,30 +66,30 @@ class ProductsScreen(Screen):
         parent_dialog.dismiss()
         
         content = MDBoxLayout(
-            orientation='vertical', spacing=8, padding=15,
-            size_hint_y=None, height=450
+            orientation='vertical', spacing=6, padding=15,
+            size_hint_y=None, height=480
         )
         
-        name_input = MDTextField(text=product[1], hint_text="Номи *", size_hint_y=None, height=48)
+        name_input = MDTextField(text=product[1], hint_text="Номи *", size_hint_y=None, height=44)
         content.add_widget(name_input)
         
-        barcode_input = MDTextField(text=product[2] or '', hint_text="Штрих-код", size_hint_y=None, height=48)
+        barcode_input = MDTextField(text=product[2] or '', hint_text="Штрих-код", size_hint_y=None, height=44)
         content.add_widget(barcode_input)
         
-        purchase_input = MDTextField(text=str(product[3] or 0), hint_text="Кириш нархи", input_filter='float', size_hint_y=None, height=48)
+        purchase_input = MDTextField(text=str(product[3] or 0), hint_text="Кириш нархи", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(purchase_input)
         
-        sale_input = MDTextField(text=str(product[4] or 0), hint_text="Сотиш нархи", input_filter='float', size_hint_y=None, height=48)
+        sale_input = MDTextField(text=str(product[4] or 0), hint_text="Сотиш нархи", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(sale_input)
         
-        qty_input = MDTextField(text=str(product[5] or 0), hint_text="Миқдор", input_filter='float', size_hint_y=None, height=48)
+        qty_input = MDTextField(text=str(product[5] or 0), hint_text="Миқдор", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(qty_input)
         
-        min_qty_input = MDTextField(text=str(product[6] or 0), hint_text="Мин. миқдор", input_filter='float', size_hint_y=None, height=48)
+        min_qty_input = MDTextField(text=str(product[6] or 0), hint_text="Мин. миқдор", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(min_qty_input)
         
         current_type = product[7] if len(product) > 7 else 'dona'
-        type_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50)
+        type_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=44)
         type_layout.add_widget(MDLabel(text="Тури:", halign="center", size_hint_x=0.3))
         
         dona_check = MDCheckbox(active=(current_type == 'dona'), size_hint_x=0.1)
@@ -147,29 +148,29 @@ class ProductsScreen(Screen):
     
     def show_add_dialog(self):
         content = MDBoxLayout(
-            orientation='vertical', spacing=8, padding=15,
-            size_hint_y=None, height=450
+            orientation='vertical', spacing=6, padding=15,
+            size_hint_y=None, height=480
         )
         
-        name_input = MDTextField(hint_text="Номи *", size_hint_y=None, height=48)
+        name_input = MDTextField(hint_text="Номи *", size_hint_y=None, height=44)
         content.add_widget(name_input)
         
-        barcode_input = MDTextField(hint_text="Штрих-код", size_hint_y=None, height=48)
+        barcode_input = MDTextField(hint_text="Штрих-код", size_hint_y=None, height=44)
         content.add_widget(barcode_input)
         
-        purchase_input = MDTextField(text="0", hint_text="Кириш нархи", input_filter='float', size_hint_y=None, height=48)
+        purchase_input = MDTextField(text="0", hint_text="Кириш нархи", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(purchase_input)
         
-        sale_input = MDTextField(text="0", hint_text="Сотиш нархи", input_filter='float', size_hint_y=None, height=48)
+        sale_input = MDTextField(text="0", hint_text="Сотиш нархи", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(sale_input)
         
-        qty_input = MDTextField(text="0", hint_text="Миқдор", input_filter='float', size_hint_y=None, height=48)
+        qty_input = MDTextField(text="0", hint_text="Миқдор", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(qty_input)
         
-        min_qty_input = MDTextField(text="0", hint_text="Мин. миқдор", input_filter='float', size_hint_y=None, height=48)
+        min_qty_input = MDTextField(text="0", hint_text="Мин. миқдор", input_filter='float', size_hint_y=None, height=44)
         content.add_widget(min_qty_input)
         
-        type_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=50)
+        type_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=44)
         type_layout.add_widget(MDLabel(text="Тури:", halign="center", size_hint_x=0.3))
         
         dona_check = MDCheckbox(active=True, size_hint_x=0.1)
@@ -186,7 +187,7 @@ class ProductsScreen(Screen):
         content.add_widget(type_layout)
         
         dialog = MDDialog(
-            title="➕ Янги маҳсулот",
+            title="➕ ЯНГИ МАҲСУЛОТ",
             type="custom",
             content_cls=content,
             buttons=[
