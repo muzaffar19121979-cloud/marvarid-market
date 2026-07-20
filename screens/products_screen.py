@@ -2,6 +2,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.spinner import Spinner
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -9,16 +10,22 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.list import OneLineListItem
 from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.label import MDLabel
+from datetime import datetime
+import os
 
-import sys, os
+import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from modules.products import ProductManager
+from modules.printer import PrinterManager
+from modules.label_printer import LabelPrinter
 
 
 class ProductsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.product_manager = ProductManager()
+        self.printer_manager = PrinterManager()
+        self.label_printer = LabelPrinter()
         self.selected_product = None
     
     def on_enter(self):
@@ -57,12 +64,14 @@ class ProductsScreen(Screen):
             content_cls=content,
             buttons=[
                 MDRectangleFlatButton(text="✏️ ТАҲРИРЛАШ", on_release=lambda x: self._show_edit_dialog(product, dialog)),
+                MDRectangleFlatButton(text="🏷️ ЭТИКЕТКА", on_release=lambda x: self._show_label_dialog(product, dialog)),
                 MDRectangleFlatButton(text="🗑 ЎЧИРИШ", on_release=lambda x: self._delete_product(product[0], dialog)),
                 MDRectangleFlatButton(text="❌ ЁПИШ", on_release=lambda x: dialog.dismiss())
             ]
         )
         dialog.open()
     
+    # ========== ТАҲРИРЛАШ ==========
     def _show_edit_dialog(self, product, parent_dialog):
         parent_dialog.dismiss()
         
@@ -147,12 +156,134 @@ class ProductsScreen(Screen):
         except Exception as e:
             self._show_msg("❌ Хатолик", str(e))
     
+    # ========== ЎЧИРИШ ==========
     def _delete_product(self, product_id, dialog):
         dialog.dismiss()
         result, message = self.product_manager.delete_product(product_id)
         self.load_products()
         self._show_msg("✅ Муваффақият" if result else "❌ Хатолик", message)
     
+    # ========== ЭТИКЕТКА ==========
+    def _show_label_dialog(self, product, parent_dialog):
+        """Этикетка диалоги"""
+        parent_dialog.dismiss()
+        
+        try:
+            name = product[1]
+            barcode_code = product[2] or f"{product[0]:06d}"
+            price = product[4]
+            measurement_type = product[7] if len(product) > 7 else 'dona'
+            
+            # Этикетка матни
+            preview_text = self.label_printer.get_label_preview_text(
+                product_name=name,
+                price=price,
+                barcode_code=barcode_code,
+                measurement_type=measurement_type
+            )
+            
+            content = MDBoxLayout(
+                orientation='vertical', spacing=10, padding=15,
+                size_hint_y=None, height=320
+            )
+            
+            content.add_widget(MDLabel(
+                text=preview_text,
+                halign="center",
+                font_style="Body1"
+            ))
+            
+            # Ўлчам танлаш
+            size_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40)
+            size_layout.add_widget(MDLabel(text="Ўлчам:", halign="center", size_hint_x=0.3))
+            
+            size_spinner = Spinner(
+                text='30x45',
+                values=['30x45', '40x30', '50x30', '58x40', '60x40', '80x50'],
+                size_hint_x=0.7
+            )
+            size_layout.add_widget(size_spinner)
+            content.add_widget(size_layout)
+            
+            dialog = MDDialog(
+                title="🏷️ Этикетка",
+                type="custom",
+                content_cls=content,
+                buttons=[
+                    MDRectangleFlatButton(text="❌ БЕКОР", on_release=lambda x: dialog.dismiss()),
+                    MDRectangleFlatButton(text="📄 КЎРИШ", on_release=lambda x: self._preview_label(
+                        name, price, barcode_code, measurement_type, size_spinner.text, dialog
+                    )),
+                    MDRectangleFlatButton(text="🖨️ ЧОП ЭТИШ", on_release=lambda x: self._do_print_label(
+                        name, price, barcode_code, measurement_type, size_spinner.text, dialog
+                    ))
+                ]
+            )
+            dialog.open()
+            
+        except Exception as e:
+            self._show_msg("❌ Хатолик", f"Этикетка:\n{str(e)}")
+    
+    def _preview_label(self, name, price, barcode_code, measurement_type, size, dialog):
+        """Этикеткани расм сифатида кўриш"""
+        dialog.dismiss()
+        
+        try:
+            img_path, msg = self.label_printer.create_label_image(
+                product_name=name,
+                price=price,
+                barcode_code=barcode_code,
+                size=size,
+                measurement_type=measurement_type
+            )
+            
+            if img_path:
+                try:
+                    os.startfile(img_path)
+                    self._show_msg("📄 Этикетка", "Расм очилди!")
+                except Exception:
+                    self._show_msg("📄 Этикетка", f"Файл: {os.path.basename(img_path)}")
+            else:
+                self._show_msg("❌ Хатолик", msg)
+                
+        except Exception as e:
+            self._show_msg("❌ Хатолик", str(e))
+    
+    def _do_print_label(self, name, price, barcode_code, measurement_type, size, dialog):
+        """Этикеткани чоп этиш"""
+        dialog.dismiss()
+        
+        try:
+            # Аввал расм яратиш
+            img_path, msg = self.label_printer.create_label_image(
+                product_name=name,
+                price=price,
+                barcode_code=barcode_code,
+                size=size,
+                measurement_type=measurement_type
+            )
+            
+            # Принтерга чоп этиш
+            result, message = self.printer_manager.print_label(
+                product_name=name,
+                price=price,
+                barcode=barcode_code,
+                quantity=1,
+                measurement_type=measurement_type
+            )
+            
+            if img_path:
+                try:
+                    os.startfile(img_path)
+                except Exception:
+                    pass
+            
+            self._show_msg("🖨️ Чоп этиш", message if result else f"❌ {message}")
+            
+        except Exception as e:
+            self._show_msg("❌ Хатолик", str(e))
+    
+    # ========== ЯНГИ МАҲСУЛОТ ==========
     def show_add_dialog(self):
         content = MDBoxLayout(
             orientation='vertical', spacing=6, padding=15,

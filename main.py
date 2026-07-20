@@ -11,6 +11,7 @@ from kivy.utils import platform
 
 from config import SHOP_NAME
 
+# Android рухсатлари
 if platform == 'android':
     try:
         from android.permissions import request_permissions, Permission
@@ -23,35 +24,24 @@ if platform == 'android':
     except Exception:
         pass
 
-# Экранларни хавфсиз юклаш
-try:
-    from screens.main_screen import MainScreen
-    from screens.sales_screen import SalesScreen
-    from screens.products_screen import ProductsScreen
-    from screens.credits_screen import CreditsScreen
-    from screens.cash_screen import CashScreen
-    from screens.report_screen import ReportScreen
-    SCREENS_OK = True
-except Exception as e:
-    print(f"Screen xatolik: {e}")
-    SCREENS_OK = False
+# Экранларни юклаш
+from screens.main_screen import MainScreen
+from screens.sales_screen import SalesScreen
+from screens.products_screen import ProductsScreen
+from screens.credits_screen import CreditsScreen
+from screens.cash_screen import CashScreen
+from screens.report_screen import ReportScreen
 
-# Экран ўлчамлари
-if platform == 'android':
-    COLS = 1
-    FONT_TITLE = "18sp"
-    FONT_BTN = "14sp"
-    FONT_TEXT = "12sp"
-    PAD = 8
-    SPACE = 6
-else:
+# Горизонтал режим
+COLS = 2
+FONT_TITLE = "20sp"
+FONT_BTN = "16sp"
+FONT_TEXT = "14sp"
+PAD = 10
+SPACE = 8
+
+if platform != 'android':
     Window.size = (1024, 600)
-    COLS = 2
-    FONT_TITLE = "28sp"
-    FONT_BTN = "22sp"
-    FONT_TEXT = "16sp"
-    PAD = 15
-    SPACE = 15
 
 KV = f'''
 ScreenManager:
@@ -76,15 +66,15 @@ ScreenManager:
         
         MDLabel:
             text: "✦ {SHOP_NAME} ✦"
-            font_style: "H3"
+            font_style: "H4"
             halign: "center"
-            size_hint_y: 0.15
+            size_hint_y: 0.12
             font_size: "{FONT_TITLE}"
         
         GridLayout:
             cols: {COLS}
             spacing: {SPACE}
-            size_hint_y: 0.70
+            size_hint_y: 0.76
             
             MDRectangleFlatButton:
                 text: "🛒 SOTISH"
@@ -137,29 +127,29 @@ ScreenManager:
 <SalesScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 8
-        spacing: 8
+        padding: 6
+        spacing: 6
         
         MDTopAppBar:
             title: "🛒 СОТИШ"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
             md_bg_color: 0.15, 0.68, 0.38, 1
             elevation: 4
+            size_hint_y: 0.08
         
         BoxLayout:
-            orientation: 'horizontal' if {COLS} == 2 else 'vertical'
+            orientation: 'horizontal'
             size_hint_y: 0.68
-            spacing: 8
+            spacing: 6
             
             BoxLayout:
                 orientation: 'vertical'
-                size_hint_x: 0.5 if {COLS} == 2 else 1
-                size_hint_y: 1 if {COLS} == 2 else 0.5
-                spacing: 5
+                size_hint_x: 0.5
+                spacing: 4
                 
                 MDTextField:
                     id: search
-                    hint_text: "🔍 Қидириш"
+                    hint_text: "🔍 Қидириш / Сканер"
                     font_size: "{FONT_TEXT}"
                     size_hint_y: 0.1
                     mode: "round"
@@ -171,15 +161,15 @@ ScreenManager:
             
             BoxLayout:
                 orientation: 'vertical'
-                size_hint_x: 0.5 if {COLS} == 2 else 1
-                size_hint_y: 1 if {COLS} == 2 else 0.5
-                spacing: 5
+                size_hint_x: 0.5
+                spacing: 4
                 
                 MDLabel:
                     text: "🛍 САВАТЧА"
                     halign: "center"
                     font_style: "H6"
-                    size_hint_y: 0.08
+                    size_hint_y: 0.06
+                    font_size: "{FONT_BTN}"
                 
                 ScrollView:
                     MDList:
@@ -189,73 +179,90 @@ ScreenManager:
                     id: total_label
                     text: "Жами: 0 сўм"
                     halign: "center"
-                    font_style: "H5"
-                    size_hint_y: 0.1
+                    font_style: "H6"
+                    size_hint_y: 0.08
+                    font_size: "{FONT_BTN}"
         
         BoxLayout:
-            size_hint_y: 0.2
-            spacing: 5
-            padding: 5
+            size_hint_y: 0.16
+            spacing: 4
+            padding: 4
             
             MDRectangleFlatButton:
                 text: "💵 НАҚД"
                 on_release: root.process_single_payment('cash')
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_TEXT}"
+                font_size: "{FONT_BTN}"
             
             MDRectangleFlatButton:
                 text: "💳 ПЛАСТИК"
                 on_release: root.process_single_payment('card')
                 md_bg_color: 0.20, 0.55, 0.86, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_TEXT}"
+                font_size: "{FONT_BTN}"
             
             MDRectangleFlatButton:
-                text: "🗑 БЎШАТ"
+                text: "📝 ҚАРЗ"
+                on_release: root.process_credit_sale()
+                md_bg_color: 0.90, 0.49, 0.13, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_BTN}"
+            
+            MDRectangleFlatButton:
+                text: "🖨️ ЧЕК"
+                on_release: root.reprint_last_receipt()
+                md_bg_color: 0.61, 0.35, 0.71, 1
+                text_color: 1, 1, 1, 1
+                font_size: "{FONT_BTN}"
+            
+            MDRectangleFlatButton:
+                text: "🗑"
                 on_release: root.clear_cart()
                 md_bg_color: 0.80, 0.20, 0.20, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_TEXT}"
+                font_size: "{FONT_BTN}"
 
 <ProductsScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 8
+        padding: 8
+        spacing: 6
         
         MDTopAppBar:
             title: "📦 МАҲСУЛОТЛАР"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
             md_bg_color: 0.20, 0.55, 0.86, 1
             elevation: 4
+            size_hint_y: 0.08
         
         ScrollView:
             MDList:
                 id: product_list
         
         BoxLayout:
-            size_hint_y: 0.1
-            padding: 5
+            size_hint_y: 0.08
+            padding: 4
             
             MDRectangleFlatButton:
                 text: "➕ ЯНГИ МАҲСУЛОТ"
                 on_release: root.show_add_dialog()
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_TEXT}"
+                font_size: "{FONT_BTN}"
 
 <CreditsScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 8
+        padding: 8
+        spacing: 6
         
         MDTopAppBar:
             title: "📝 ҚАРЗЛАР"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
             md_bg_color: 0.90, 0.49, 0.13, 1
             elevation: 4
+            size_hint_y: 0.08
         
         ScrollView:
             MDList:
@@ -264,14 +271,15 @@ ScreenManager:
 <CashScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 8
+        padding: 8
+        spacing: 6
         
         MDTopAppBar:
             title: "💰 НАҚД ПУЛ"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
             md_bg_color: 0.95, 0.61, 0.07, 1
             elevation: 4
+            size_hint_y: 0.08
         
         ScrollView:
             MDList:
@@ -280,22 +288,23 @@ ScreenManager:
         MDRectangleFlatButton:
             text: "➕ ОПЕРАЦИЯ ҚЎШИШ"
             on_release: root.show_add_dialog()
-            size_hint_y: 0.08
+            size_hint_y: 0.06
             md_bg_color: 0.15, 0.68, 0.38, 1
             text_color: 1, 1, 1, 1
-            font_size: "{FONT_TEXT}"
+            font_size: "{FONT_BTN}"
 
 <ReportScreen>:
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
-        spacing: 8
+        padding: 8
+        spacing: 6
         
         MDTopAppBar:
             title: "📊 ҲИСОБОТ"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
             md_bg_color: 0.61, 0.35, 0.71, 1
             elevation: 4
+            size_hint_y: 0.08
         
         ScrollView:
             MDLabel:
@@ -305,19 +314,16 @@ ScreenManager:
                 size_hint_y: None
                 text_size: self.width, None
                 height: self.texture_size[1]
-                padding: 20
+                padding: 15
                 font_size: "{FONT_TEXT}"
 '''
 
 class DukonApp(MDApp):
     def build(self):
-        try:
-            self.title = f"✦ {SHOP_NAME} ✦"
-            self.theme_cls.primary_palette = "Blue"
-            self.theme_cls.theme_style = "Light"
-            return Builder.load_string(KV)
-        except Exception as e:
-            print(f"Build xatolik: {e}")
+        self.title = f"✦ {SHOP_NAME} ✦"
+        self.theme_cls.primary_palette = "Blue"
+        self.theme_cls.theme_style = "Light"
+        return Builder.load_string(KV)
 
 if __name__ == '__main__':
     DukonApp().run()

@@ -3,7 +3,6 @@ import os
 import tempfile
 from datetime import datetime
 import platform
-import subprocess
 
 # ========== reportlab (PDF) ==========
 try:
@@ -16,7 +15,6 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
-    print("⚠️ reportlab yo'q (PDF ishlamaydi)")
 
 # ========== Windows printer ==========
 try:
@@ -33,16 +31,13 @@ try:
     BLEAK_AVAILABLE = True
 except ImportError:
     BLEAK_AVAILABLE = False
-    print("⚠️ bleak yo'q (Bluetooth ishlamaydi)")
 
 from config import (
     SHOP_NAME, SHOP_ADDRESS, SHOP_PHONE, SHOP_WEBSITE,
-    RECEIPT_WIDTH, LABEL_WIDTH, LABEL_HEIGHT,
-    PRINTER_TYPE, BLUETOOTH_PRINTER_NAME, PRINTER_ENCODING,
-    RECEIPT_SHOW_LOGO, RECEIPT_SHOW_ADDRESS, RECEIPT_SHOW_PHONE,
+    RECEIPT_WIDTH, PRINTER_TYPE, BLUETOOTH_PRINTER_NAME, PRINTER_ENCODING,
+    RECEIPT_SHOW_ADDRESS, RECEIPT_SHOW_PHONE,
     RECEIPT_SHOW_WEBSITE, RECEIPT_SHOW_OPERATOR, RECEIPT_SHOW_FOOTER,
-    RECEIPT_FOOTER, OPERATOR_NAME,
-    FONT_PATHS, SUMATRA_PATHS
+    RECEIPT_FOOTER, OPERATOR_NAME, FONT_PATHS
 )
 
 _font_registered = False
@@ -105,7 +100,6 @@ class BluetoothPrinter:
             result = asyncio.run(connect_device())
             if result:
                 self._send_raw(b'\x1B' + b'@')
-                print(f"✅ Printerga ulandi: {self.device_name}")
             return result
         except Exception as e:
             print(f"❌ Ulanishda xatolik: {e}")
@@ -157,12 +151,12 @@ class PrinterManager:
         self.receipt_width = RECEIPT_WIDTH
         self.encoding = PRINTER_ENCODING
         self.operator = OPERATOR_NAME
+        self.printer_type = PRINTER_TYPE
         
         # Bluetooth
         self.bluetooth = None
-        if PRINTER_TYPE == "bluetooth" and BLEAK_AVAILABLE:
+        if self.printer_type == "bluetooth" and BLEAK_AVAILABLE:
             self.bluetooth = BluetoothPrinter(BLUETOOTH_PRINTER_NAME)
-            print(f"✅ Bluetooth printer tayyor: {BLUETOOTH_PRINTER_NAME}")
         
         # Windows
         self.default_printer = None
@@ -210,7 +204,6 @@ class PrinterManager:
             GS = b'\x1D'
             LF = b'\x0A'
             
-            # Sarlavha
             self.bluetooth._send_raw(ESC + b'a' + b'\x01')
             self.bluetooth.send_text(f"{self.shop_name}\n")
             
@@ -223,7 +216,6 @@ class PrinterManager:
             self.bluetooth._send_raw(ESC + b'a' + b'\x00')
             self.bluetooth.send_text("-" * 32 + "\n")
             
-            # Sana va operator
             self.bluetooth.send_text(f"Sana: {datetime.now().strftime('%d.%m.%Y %H:%M')}\n")
             if RECEIPT_SHOW_OPERATOR:
                 self.bluetooth.send_text(f"Operator: {self.operator}\n")
@@ -233,7 +225,6 @@ class PrinterManager:
             
             self.bluetooth.send_text("-" * 32 + "\n")
             
-            # Mahsulotlar
             for item in cart_items:
                 name = item.get('name', '')[:20]
                 quantity = item.get('quantity', 1)
@@ -246,16 +237,13 @@ class PrinterManager:
             
             self.bluetooth.send_text("-" * 32 + "\n")
             
-            # Jami
             self.bluetooth._send_raw(ESC + b'E' + b'\x01')
             self.bluetooth.send_text(f"JAMI: {total_amount:,.0f} so'm\n")
             self.bluetooth._send_raw(ESC + b'E' + b'\x00')
             
-            # Kelishuv
             if negotiated_price > 0 and negotiated_price != total_amount:
                 self.bluetooth.send_text(f"Kelishuv: {negotiated_price:,.0f} so'm\n")
             
-            # To'lov
             if payment_type == 'mixed':
                 if cash > 0:
                     self.bluetooth.send_text(f"Naqd: {cash:,.0f} so'm\n")
@@ -268,7 +256,6 @@ class PrinterManager:
                 pay_text = payment_names.get(payment_type, payment_type)
                 self.bluetooth.send_text(f"To'lov: {pay_text} - {total_amount:,.0f} so'm\n")
             
-            # Qaytim
             if paid_amount > 0:
                 self.bluetooth.send_text(f"Berilgan: {paid_amount:,.0f} so'm\n")
                 if change_amount > 0:
@@ -276,7 +263,6 @@ class PrinterManager:
             
             self.bluetooth.send_text("=" * 32 + "\n")
             
-            # Rahmat
             self.bluetooth._send_raw(ESC + b'a' + b'\x01')
             self.bluetooth.send_text("\n✦ RAHMAT! ✦\n")
             if RECEIPT_SHOW_FOOTER:
@@ -285,39 +271,33 @@ class PrinterManager:
             if RECEIPT_SHOW_WEBSITE:
                 self.bluetooth.send_text(f"Web: {self.shop_website}\n")
             
-            # Kesish
             self.bluetooth._send_raw(GS + b'V' + b'\x00')
             
             self.bluetooth.disconnect()
-            return True, "✅ Chek Bluetooth orqali chop etildi!"
+            return True, "✅ Chek chop etildi!"
             
         except Exception as e:
             self.bluetooth.disconnect()
-            return False, f"❌ Chek chop etishda xatolik: {str(e)}"
+            return False, f"❌ Xatolik: {str(e)}"
     
-    # ========== PDF CHEK (faqat Windows/Linux uchun) ==========
+    # ========== PDF CHEK ==========
     def create_receipt_pdf(self, cart_items, total_amount, payment_type,
                            customer_name="", cash=0, card=0, credit=0,
                            paid_amount=0, change_amount=0, negotiated_price=0):
         if not REPORTLAB_AVAILABLE:
-            return False, "PDF yaratish uchun reportlab kerak"
+            return False, "PDF uchun reportlab kerak"
         
         try:
             page_width = self.receipt_width * mm
             base_height = 60
             item_height = 6 * len(cart_items)
-            payment_height = 15
-            page_height = (base_height + item_height + payment_height) * mm
+            page_height = (base_height + item_height + 15) * mm
             
-            filename = os.path.join(
-                self.temp_dir,
-                f"receipt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-            )
+            filename = os.path.join(self.temp_dir, f"receipt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
             
             c = canvas.Canvas(filename, pagesize=(page_width, page_height))
             width = page_width
             height = page_height
-            
             y = height - 8 * mm
             
             c.setFont(self.font_name, 14)
@@ -334,8 +314,6 @@ class PrinterManager:
                 c.drawCentredString(width / 2, y, f"Tel: {self.shop_phone}")
                 y -= 5 * mm
             
-            c.setStrokeColor(colors.black)
-            c.setLineWidth(0.5)
             c.line(3 * mm, y, width - 3 * mm, y)
             y -= 4 * mm
             
@@ -356,8 +334,6 @@ class PrinterManager:
             y -= 4 * mm
             
             c.setFont(self.font_name, 10)
-            c.setFillColor(colors.black)
-            
             for item in cart_items:
                 name = item.get('name', '')[:18]
                 quantity = item.get('quantity', 1)
@@ -374,7 +350,6 @@ class PrinterManager:
             y -= 4 * mm
             
             c.setFont(self.font_name, 14)
-            c.setFillColor(colors.black)
             c.drawString(3 * mm, y, "JAMI:")
             c.drawRightString(width - 3 * mm, y, f"{total_amount:,.0f} so'm")
             y -= 6 * mm
@@ -421,7 +396,6 @@ class PrinterManager:
                     y -= 4.5 * mm
             
             y -= 2 * mm
-            c.setStrokeColor(colors.HexColor('#999999'))
             c.line(3 * mm, y, width - 3 * mm, y)
             y -= 4 * mm
             
@@ -452,7 +426,6 @@ class PrinterManager:
                       customer_name="", cash=0, card=0, credit=0,
                       paid_amount=0, change_amount=0, negotiated_price=0):
         
-        # 1. Bluetooth orqali chop etish
         if self.printer_type == "bluetooth" and self.bluetooth:
             result, message = self.print_receipt_bluetooth(
                 cart_items, total_amount, payment_type,
@@ -462,7 +435,6 @@ class PrinterManager:
             if result:
                 return True, message
         
-        # 2. PDF yaratish
         if REPORTLAB_AVAILABLE:
             result, filename = self.create_receipt_pdf(
                 cart_items, total_amount, payment_type,
@@ -472,12 +444,82 @@ class PrinterManager:
             if result:
                 try:
                     os.startfile(filename)
-                    return True, f"📄 Chek PDF ochildi!"
+                    return True, "📄 Chek PDF ochildi!"
                 except Exception:
                     return True, f"📄 PDF: {filename}"
         
         return False, "Chop etish imkoni yo'q"
     
+    def print_label(self, product_name, price, barcode="", quantity=1, measurement_type='dona'):
+        """Etiketka chop etish - shtrix-kod bilan"""
+        if not self.bluetooth:
+            return False, "Bluetooth printer mavjud emas!"
+        
+        if not self.bluetooth.connect():
+            return False, "Printerga ulanib bo'lmadi!"
+        
+        try:
+            ESC = b'\x1B'
+            GS = b'\x1D'
+            LF = b'\x0A'
+            
+            unit = 'кг' if measurement_type == 'kg' else 'дона'
+            
+            # Printer init
+            self.bluetooth._send_raw(ESC + b'@')
+            
+            # Markazlash
+            self.bluetooth._send_raw(ESC + b'a' + b'\x01')
+            
+            # Do'kon nomi
+            self.bluetooth.send_text(f"{self.shop_name}\n")
+            self.bluetooth.send_text("-" * 24 + "\n")
+            
+            # Mahsulot nomi (katta shrift)
+            self.bluetooth._send_raw(ESC + b'E' + b'\x01')  # Bold
+            self.bluetooth.send_text(f"{product_name[:20]}\n")
+            self.bluetooth._send_raw(ESC + b'E' + b'\x00')  # Normal
+            
+            # Narx (katta)
+            self.bluetooth._send_raw(GS + b'!' + b'\x11')  # 2x katta
+            self.bluetooth.send_text(f"{price:,.0f} so'm\n")
+            self.bluetooth._send_raw(GS + b'!' + b'\x00')  # Normal
+            
+            self.bluetooth.send_text(f"1 {unit}\n")
+            self.bluetooth.send_text(LF)
+            
+            # Shtrix-kod
+            if barcode:
+                # CODE128 shtrix-kod
+                barcode_data = barcode.encode('ascii', errors='ignore')[:20]
+                self.bluetooth._send_raw(ESC + b'a' + b'\x01')  # Markaz
+                self.bluetooth._send_raw(GS + b'h' + b'\x50')  # Balandlik 80
+                self.bluetooth._send_raw(GS + b'w' + b'\x02')  # Kenglik 2
+                self.bluetooth._send_raw(GS + b'k' + b'\x49')  # CODE128
+                self.bluetooth._send_raw(bytes([len(barcode_data)]))
+                self.bluetooth._send_raw(barcode_data)
+                self.bluetooth._send_raw(LF)
+                self.bluetooth.send_text(f"    {barcode}\n")
+            else:
+                # Agar shtrix-kod yo'q bo'lsa, ID ni chiqaramiz
+                self.bluetooth.send_text(f"ID: {product_name}\n")
+            
+            self.bluetooth.send_text("-" * 24 + "\n")
+            
+            # Sana
+            self.bluetooth.send_text(f"{datetime.now().strftime('%d.%m.%Y')}\n")
+            
+            # Kesish
+            self.bluetooth._send_raw(LF)
+            self.bluetooth._send_raw(LF)
+            self.bluetooth._send_raw(GS + b'V' + b'\x00')
+            
+            self.bluetooth.disconnect()
+            return True, "✅ Etiketka chop etildi!"
+            
+        except Exception as e:
+            self.bluetooth.disconnect()
+            return False, f"❌ Xatolik: {str(e)}"
     def get_printer_status(self):
         status = []
         
@@ -498,7 +540,5 @@ class PrinterManager:
         return "\n".join(status)
     
     def test_print(self):
-        test_items = [
-            {'name': 'Test mahsulot', 'price': 10000, 'quantity': 1, 'unit': 'dona'}
-        ]
+        test_items = [{'name': 'Test', 'price': 10000, 'quantity': 1, 'unit': 'dona'}]
         return self.print_receipt(test_items, 10000, 'cash', '', 10000, 0, 0)
