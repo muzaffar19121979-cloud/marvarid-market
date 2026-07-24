@@ -32,10 +32,11 @@ from screens.credits_screen import CreditsScreen
 from screens.cash_screen import CashScreen
 from screens.report_screen import ReportScreen
 
-# Горизонтал режим - ФАҚАТ ЛАНДШАФТ
+# Горизонтал режим
 COLS = 2
 FONT_TITLE = "18sp"
 FONT_BTN = "15sp"
+FONT_BTN_SMALL = "13sp"
 FONT_TEXT = "13sp"
 PAD = 6
 SPACE = 5
@@ -77,7 +78,7 @@ ScreenManager:
             size_hint_y: 0.78
             
             MDRectangleFlatButton:
-                text: "🛒 SOTISH"
+                text: "SOTISH"
                 on_release: root.open_sales()
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
@@ -85,7 +86,7 @@ ScreenManager:
                 size_hint: 1, 1
             
             MDRectangleFlatButton:
-                text: "📦 MAXSULOTLAR"
+                text: "MAXSULOTLAR"
                 on_release: root.open_products()
                 md_bg_color: 0.20, 0.55, 0.86, 1
                 text_color: 1, 1, 1, 1
@@ -93,7 +94,7 @@ ScreenManager:
                 size_hint: 1, 1
             
             MDRectangleFlatButton:
-                text: "📝 QARZLAR"
+                text: "QARZLAR"
                 on_release: root.open_credits()
                 md_bg_color: 0.90, 0.49, 0.13, 1
                 text_color: 1, 1, 1, 1
@@ -101,7 +102,7 @@ ScreenManager:
                 size_hint: 1, 1
             
             MDRectangleFlatButton:
-                text: "💰 NAQD PUL"
+                text: "NAQD PUL"
                 on_release: root.open_cash()
                 md_bg_color: 0.95, 0.61, 0.07, 1
                 text_color: 1, 1, 1, 1
@@ -109,7 +110,7 @@ ScreenManager:
                 size_hint: 1, 1
             
             MDRectangleFlatButton:
-                text: "📊 HISOBOT"
+                text: "HISOBOT"
                 on_release: root.open_report()
                 md_bg_color: 0.61, 0.35, 0.71, 1
                 text_color: 1, 1, 1, 1
@@ -117,7 +118,7 @@ ScreenManager:
                 size_hint: 1, 1
             
             MDRectangleFlatButton:
-                text: "❌ CHIQISH"
+                text: "CHIQISH"
                 on_release: app.stop()
                 md_bg_color: 0.80, 0.20, 0.20, 1
                 text_color: 1, 1, 1, 1
@@ -127,16 +128,17 @@ ScreenManager:
 <SalesScreen>:
     BoxLayout:
         orientation: 'horizontal'
-        padding: 4
-        spacing: 4
+        padding: 2
+        spacing: 2
         
+        # Чап - махсулотлар
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.48
-            spacing: 3
+            size_hint_x: 0.42
+            spacing: 2
             
             MDTopAppBar:
-                title: "🛒 СОТИШ"
+                title: "SOTISH"
                 left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 elevation: 2
@@ -144,7 +146,7 @@ ScreenManager:
             
             MDTextField:
                 id: search
-                hint_text: "🔍 Қидириш / Сканер"
+                hint_text: "Qidirish / Skaner"
                 font_size: "{FONT_TEXT}"
                 size_hint_y: 0.08
                 mode: "round"
@@ -154,13 +156,14 @@ ScreenManager:
                 MDList:
                     id: product_list
         
+        # Урта - саватча
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.48
-            spacing: 3
+            size_hint_x: 0.38
+            spacing: 2
             
             MDLabel:
-                text: "🛍 САВАТЧА"
+                text: "SAVATCHA"
                 halign: "center"
                 font_style: "H6"
                 size_hint_y: 0.05
@@ -172,52 +175,53 @@ ScreenManager:
             
             MDLabel:
                 id: total_label
-                text: "Жами: 0 сўм"
+                text: "Jami: 0 so'm"
                 halign: "center"
                 font_style: "H6"
                 size_hint_y: 0.06
                 font_size: "{FONT_BTN}"
         
+        # Унг - тугмалар
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.12
+            size_hint_x: 0.20
             spacing: 2
             padding: 2
             
             MDRectangleFlatButton:
-                text: "💵"
+                text: "NAQD"
                 on_release: root.process_single_payment('cash')
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
             
             MDRectangleFlatButton:
-                text: "💳"
+                text: "PLASTIK"
                 on_release: root.process_single_payment('card')
                 md_bg_color: 0.20, 0.55, 0.86, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
             
             MDRectangleFlatButton:
-                text: "📝"
+                text: "QARZ"
                 on_release: root.process_credit_sale()
                 md_bg_color: 0.90, 0.49, 0.13, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
             
             MDRectangleFlatButton:
-                text: "🖨️"
+                text: "CHEK"
                 on_release: root.reprint_last_receipt()
                 md_bg_color: 0.61, 0.35, 0.71, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
             
             MDRectangleFlatButton:
-                text: "🗑"
+                text: "TOZALASH"
                 on_release: root.clear_cart()
                 md_bg_color: 0.80, 0.20, 0.20, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
 
 <ProductsScreen>:
     BoxLayout:
@@ -227,10 +231,10 @@ ScreenManager:
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.75
+            size_hint_x: 0.78
             
             MDTopAppBar:
-                title: "📦 МАҲСУЛОТЛАР"
+                title: "MAXSULOTLAR"
                 left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
                 md_bg_color: 0.20, 0.55, 0.86, 1
                 elevation: 2
@@ -242,16 +246,16 @@ ScreenManager:
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.25
+            size_hint_x: 0.22
             padding: 3
             spacing: 3
             
             MDRectangleFlatButton:
-                text: "➕ ЯНГИ МАҲСУЛОТ"
+                text: "YANGI MAXSULOT"
                 on_release: root.show_add_dialog()
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
 
 <CreditsScreen>:
     BoxLayout:
@@ -261,10 +265,10 @@ ScreenManager:
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.75
+            size_hint_x: 1
             
             MDTopAppBar:
-                title: "📝 ҚАРЗЛАР"
+                title: "QARZLAR"
                 left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
                 md_bg_color: 0.90, 0.49, 0.13, 1
                 elevation: 2
@@ -282,10 +286,10 @@ ScreenManager:
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.75
+            size_hint_x: 0.78
             
             MDTopAppBar:
-                title: "💰 НАҚД ПУЛ"
+                title: "NAQD PUL"
                 left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
                 md_bg_color: 0.95, 0.61, 0.07, 1
                 elevation: 2
@@ -297,15 +301,15 @@ ScreenManager:
         
         BoxLayout:
             orientation: 'vertical'
-            size_hint_x: 0.25
+            size_hint_x: 0.22
             padding: 3
             
             MDRectangleFlatButton:
-                text: "➕ ОПЕРАЦИЯ ҚЎШИШ"
+                text: "OPERATSIYA QUSHISH"
                 on_release: root.show_add_dialog()
                 md_bg_color: 0.15, 0.68, 0.38, 1
                 text_color: 1, 1, 1, 1
-                font_size: "{FONT_BTN}"
+                font_size: "{FONT_BTN_SMALL}"
 
 <ReportScreen>:
     BoxLayout:
@@ -318,7 +322,7 @@ ScreenManager:
             size_hint_x: 1
             
             MDTopAppBar:
-                title: "📊 ҲИСОБОТ"
+                title: "HISOBOT"
                 left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'main')]]
                 md_bg_color: 0.61, 0.35, 0.71, 1
                 elevation: 2
@@ -327,7 +331,7 @@ ScreenManager:
             ScrollView:
                 MDLabel:
                     id: report_label
-                    text: "Юкланмоқда..."
+                    text: "Yuklanmoqda..."
                     halign: "left"
                     size_hint_y: None
                     text_size: self.width, None
