@@ -3,16 +3,17 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 from kivy.lang import Builder
-from kivy.core.window import Window
 from kivy.utils import platform
 
 from config import SHOP_NAME
 
-# Android рухсатлари
+# Android рухсатлари + landscape
 if platform == 'android':
+    Window.orientation = 'landscape'
     try:
         from android.permissions import request_permissions, Permission
         request_permissions([
@@ -23,7 +24,7 @@ if platform == 'android':
         ])
     except Exception:
         pass
-
+    
 # Экранларни юклаш
 from screens.main_screen import MainScreen
 from screens.sales_screen import SalesScreen
